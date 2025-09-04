@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group = 'me.will0mane.software.pack'
+version = '1.0-SNAPSHOT'
+
+tasks.register('sourceJavadoc', Jar) {
+    from sourceSets.main.allSource
+    archiveClassifier.set('sources')
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly("com.google.guava:guava:33.4.8-jre")
+}
+
+publishing {
+    publications {
+        shadow(MavenPublication) {
+            from components.java
+            artifact sourceJavadoc
+        }
+    }
+
+    repositories {
+        maven {
+            url "https://repo.coralmc.it/releases"
+            credentials {
+                username "$mavenUser"
+                password "$mavenPassword"
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+}
