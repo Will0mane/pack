@@ -11,7 +11,7 @@ public class BaseServer implements Server {
     private final CodecRegistry registry;
 
     private final ServerSocket socket;
-    private Consumer<Client> consumer = _->{};
+    private Consumer<Client> consumer = ignored->{};
 
     private volatile boolean running = true;
     private Thread loop;

@@ -115,7 +115,7 @@ public class BasePeer implements Peer {
         }catch(Exception e) {
             try {
                 close();
-            } catch (Exception _) {
+            } catch (Exception ignored) {
             }
             throw new SystemException(e);
         }

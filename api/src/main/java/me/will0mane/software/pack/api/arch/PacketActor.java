@@ -64,7 +64,7 @@ public interface PacketActor {
                 return response;
             }
         });
-        scheduler().after(unit, timeout).thenAccept(_ -> {
+        scheduler().after(unit, timeout).thenAccept(ignored -> {
             future.complete(null);
         });
         return future;
