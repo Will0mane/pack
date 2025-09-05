@@ -23,6 +23,7 @@ public class FixedSizePool implements Pool {
     }
 
     private void checkPoolHealth() {
+        pool.removeIf(peer -> !peer.isConnected());
         if (pool.size() >= this.size) return;
         int delta = this.size - pool.size();
         for (int i = 0; i < delta; i++) {
