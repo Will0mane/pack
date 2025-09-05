@@ -75,13 +75,31 @@ public class BasePeer implements Peer {
                     }
                 } catch (EOFException e) {
                     e.printStackTrace();
+                    running = false;
+                    try {
+                        socket.close();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 } catch (IOException e) {
                     if (running) { // Only log if we're not shutting down
                         System.err.println("Error reading from input stream: " + e.getMessage());
                     }
+                    running = false;
+                    try {
+                        socket.close();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 } catch (Exception e) {
                     System.err.println("Unexpected error in read thread: " + e.getMessage());
                     e.printStackTrace();
+                    running = false;
+                    try {
+                        socket.close();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
             });
             readThread.start();
