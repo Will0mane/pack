@@ -7,7 +7,6 @@ import me.will0mane.software.pack.api.exceptions.SystemException;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -31,21 +30,21 @@ public interface PacketActor {
         int length = all.length;
         PacketBuffer newBuffer = new PacketBuffer();
 
-        newBuffer.writeByte((byte)(length >>> 24));
-        newBuffer.writeByte((byte)(length >>> 16));
-        newBuffer.writeByte((byte)(length >>>  8));
-        newBuffer.writeByte((byte)(length >>>  0));
+        newBuffer.writeByte((byte) (length >>> 24));
+        newBuffer.writeByte((byte) (length >>> 16));
+        newBuffer.writeByte((byte) (length >>> 8));
+        newBuffer.writeByte((byte) (length >>> 0));
 
         for (byte b : all) {
             newBuffer.writeByte(b);
         }
 
         OutputStream output = output();
-        if(output == null) throw new NotConnectedException();
+        if (output == null) throw new NotConnectedException();
         try {
             byte[] b = newBuffer.writeFully();
             output.write(b);
-        }catch (IOException e) {
+        } catch (IOException e) {
             throw new SystemException(e);
         }
     }

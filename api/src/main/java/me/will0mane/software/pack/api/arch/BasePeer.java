@@ -46,7 +46,7 @@ public class BasePeer implements Peer {
 
     @Override
     public boolean isConnected() {
-        return socket != null && socket.isConnected();
+        return running && socket != null && socket.isConnected();
     }
 
     @Override
