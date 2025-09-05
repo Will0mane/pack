@@ -9,7 +9,7 @@ import java.util.List;
 
 public class PacketBuffer {
 
-    public static final int MAX_PACKET_SIZE = 2048;
+    public static final int MAX_PACKET_SIZE = 1048576;
 
     private final boolean read;
 
@@ -228,6 +228,11 @@ public class PacketBuffer {
         return this.input.readByte();
     }
 
+    public boolean readBoolean() {
+        checkWriteOnly();
+        return this.input.readBoolean();
+    }
+
     public byte[] readBytes() {
         checkWriteOnly();
         int len = this.input.readInt();
@@ -313,6 +318,16 @@ public class PacketBuffer {
         short[] result = new short[len];
         for(int i = 0; i < len; ++i) {
             result[i] = this.input.readShort();
+        }
+        return result;
+    }
+
+    public boolean[] readBooleans() {
+        checkWriteOnly();
+        int len = this.input.readInt();
+        boolean[] result = new boolean[len];
+        for(int i = 0; i < len; ++i) {
+            result[i] = this.input.readBoolean();
         }
         return result;
     }
