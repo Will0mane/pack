@@ -73,10 +73,12 @@ public interface PacketActor {
         return future;
     }
 	
-	default <T extends Packet> CompletableFuture<T> sendRequest(RequestPacket packet, Class<T> expected, TimeUnit unit, long timeout) {
+	default <T extends Packet> CompletableFuture<T> sendRequest(Packet packet, Class<T> expected, TimeUnit unit, long timeout) {
 		CompletableFuture<T> future = new CompletableFuture<>();
 
-		send(packet);
+		RequestPacket request = RequestPacket.of(registrar(), packet);
+
+		send(request);
 		registrar().register(new PacketListener<ResponsePacket>() {
 			@Override
 			public Class<ResponsePacket> packetClass() {
@@ -86,7 +88,7 @@ public interface PacketActor {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void onPacket(ResponsePacket received) {
-				if (received.request() != packet.id()) return;
+				if (received.request() != request.id()) return;
 				future.complete(((T) received.response()));
 				registrar().unregister(this);
 			}
@@ -94,7 +96,7 @@ public interface PacketActor {
 		
 		scheduler().after(unit, timeout).thenRun(() -> {
 			if (!future.isDone()) {
-				future.completeExceptionally(new TimeoutException("No response in time! Request id: " + packet.id()));
+				future.completeExceptionally(new TimeoutException("No response in time! Request id: " + request.id()));
 			}
 		});
 

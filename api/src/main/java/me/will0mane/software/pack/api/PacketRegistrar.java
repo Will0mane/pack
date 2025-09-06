@@ -2,6 +2,7 @@ package me.will0mane.software.pack.api;
 
 import me.will0mane.software.pack.api.codec.Codec;
 import me.will0mane.software.pack.api.request.RequestPacket;
+import me.will0mane.software.pack.api.request.ResponsePacket;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,6 +24,7 @@ public class PacketRegistrar {
     public void useCodec(Codec codec) {
         factoryMap.clear();
         codec.registerAll(this);
+		register(new RequestPacket.Factory(this), new ResponsePacket.Factory(this));
     }
 
     public void register(PacketFactory<?>... factories) {
