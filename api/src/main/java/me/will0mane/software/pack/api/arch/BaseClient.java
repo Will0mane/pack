@@ -13,6 +13,7 @@ import me.will0mane.software.pack.api.hello.ServerboundHello;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static me.will0mane.software.pack.api.PacketBuffer.MAX_PACKET_SIZE;
@@ -76,25 +77,44 @@ public class BaseClient implements Client {
                 client.addAll(List.of(packet.supported()));
 
                 String using = null;
-                if(client.contains(codecInfo().preferred().identifier())) {
+                if (client.contains(codecInfo().preferred().identifier())) {
                     using = codecInfo().preferred().identifier();
                 }
 
-                if(using == null) {
+                if (using == null) {
                     for (Codec codec : codecInfo().supported()) {
-                        if(!client.contains(codec.identifier())) continue;
+                        if (!client.contains(codec.identifier())) continue;
                         using = codec.identifier();
                         break;
                     }
                 }
 
                 HelloResult result = HelloResult.ACCEPTED;
-                if(using == null) {
+                if (using == null) {
                     result = HelloResult.NO_MATCH;
                 }
 
                 send(new ClientboundHello(result, using));
                 registrar().useCodec(registry.fromId(using));
+            }
+        });
+
+        registrar().register(new RequestListener<>(this::send) {
+
+            @Override
+            public Packet handle(Packet packet) {
+                Collection<PacketListener<?>> listeners1 = registrar().listeners(packet.getClass());
+                if (listeners1 == null || listeners1.isEmpty()) return null;
+
+                Packet response = null;
+                Collection<PacketListener<?>> listeners = new ArrayList<>(listeners1);
+                for (PacketListener listener : listeners) {
+                    if (listener.packetClass() != packet.getClass()) continue;
+                    response = listener.withResponse(packet);
+                    if (response != null) break;
+                }
+
+                return response;
             }
         });
 
@@ -130,7 +150,7 @@ public class BaseClient implements Client {
 
     @Override
     public void close() throws Exception {
-        if(socket == null) return;
+        if (socket == null) return;
         socket.close();
         running = false;
         readThread.interrupt();
