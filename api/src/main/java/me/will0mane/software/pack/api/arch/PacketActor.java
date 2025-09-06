@@ -4,11 +4,14 @@ import me.will0mane.software.pack.api.*;
 import me.will0mane.software.pack.api.exceptions.ConnectionException;
 import me.will0mane.software.pack.api.exceptions.NotConnectedException;
 import me.will0mane.software.pack.api.exceptions.SystemException;
+import me.will0mane.software.pack.api.request.RequestPacket;
+import me.will0mane.software.pack.api.request.ResponsePacket;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public interface PacketActor {
 
@@ -18,7 +21,8 @@ public interface PacketActor {
 
     OutputStream output();
 
-    default void send(Packet packet) throws ConnectionException {
+    @SuppressWarnings("unchecked")
+	default void send(Packet packet) throws ConnectionException {
         PacketBuffer buffer = new PacketBuffer();
 
         PacketFactory<Packet> factory = (PacketFactory<Packet>) registrar().factory(packet);
@@ -68,6 +72,34 @@ public interface PacketActor {
         });
         return future;
     }
+	
+	default <T extends Packet> CompletableFuture<T> sendRequest(RequestPacket packet, Class<T> expected, TimeUnit unit, long timeout) {
+		CompletableFuture<T> future = new CompletableFuture<>();
+
+		send(packet);
+		registrar().register(new PacketListener<ResponsePacket>() {
+			@Override
+			public Class<ResponsePacket> packetClass() {
+				return ResponsePacket.class;
+			}
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public void onPacket(ResponsePacket received) {
+				if (received.request() != packet.id()) return;
+				future.complete(((T) received.response()));
+				registrar().unregister(this);
+			}
+		});
+		
+		scheduler().after(unit, timeout).thenRun(() -> {
+			if (!future.isDone()) {
+				future.completeExceptionally(new TimeoutException("No response in time! Request id: " + packet.id()));
+			}
+		});
+
+		return future;
+	}
 
     void receive(Packet packet);
 

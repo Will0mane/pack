@@ -1,19 +1,25 @@
 package me.will0mane.software.pack.api;
 
 import me.will0mane.software.pack.api.codec.Codec;
+import me.will0mane.software.pack.api.request.RequestPacket;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class PacketRegistrar {
 
     private final Map<Class<? extends Packet>, Collection<PacketListener<?>>> listenMap = new HashMap<>();
     private final Map<String, PacketFactory<?>> factoryMap = new HashMap<>();
-
+	
+	private final Map<Integer, CompletableFuture<?>> pendingRequests = new HashMap<>();
+	private final Map<Packet, Integer> requests = new HashMap<>();
+	
     private int lastListenerID = -1;
-
+	private int lastRequestID = 0;
+	
     public void useCodec(Codec codec) {
         factoryMap.clear();
         codec.registerAll(this);
@@ -54,9 +60,23 @@ public class PacketRegistrar {
         return factory(packet.getClass());
     }
 
+	public void addRequest(RequestPacket packet) {
+		requests.put(packet.carry(), packet.id());
+	}
+	
+	public int request(Packet packet) {
+		if (!requests.containsKey(packet)) return -1;
+		return requests.remove(packet);
+	}
+	
     public int nextListenerId() {
         lastListenerID++;
         return lastListenerID;
     }
+	
+	public int nextRequestId() {
+		lastRequestID++;
+		return lastRequestID;
+	}
 
 }
