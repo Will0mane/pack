@@ -7,6 +7,10 @@ import me.will0mane.software.pack.api.PacketRegistrar;
 
 public record RequestPacket(int id, Packet carry) implements Packet {
 	
+	public static RequestPacket of(PacketRegistrar registrar, Packet carry) {
+		return new RequestPacket(registrar.nextRequestId(), carry);
+	}
+	
 	public static final class Factory implements PacketFactory<RequestPacket> {
 
 		private final PacketRegistrar registrar;
