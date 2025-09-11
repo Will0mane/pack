@@ -6,4 +6,6 @@ public interface Pool {
 
     void retrieve(Consumer<Peer> peer);
 
+    void withdraw(Consumer<Peer> peer);
+
 }

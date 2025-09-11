@@ -49,4 +49,12 @@ public class FixedSizePool implements Pool {
             makeNewPeer();
         }
     }
+
+    @Override
+    public void withdraw(Consumer<Peer> peer) {
+        checkPoolHealth();
+        Peer poll = pool.poll();
+        if (poll == null) throw new RuntimeException("No candidate available in pool!");
+        peer.accept(poll);
+    }
 }
