@@ -24,7 +24,21 @@ public class FixedSizePool implements Pool {
 
     private void checkPoolHealth() {
         pool.removeIf(peer -> !peer.isConnected());
-        if (pool.size() >= this.size) return;
+        if (pool.size() == this.size) return;
+        if (pool.size() > this.size) {
+            int delta = this.size - pool.size();
+            for (int i = 0; i < delta; i++) {
+                Peer peer = pool.poll();
+                if (peer == null || !peer.isConnected()) continue;
+                try {
+                    peer.close();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return;
+        }
+
         int delta = this.size - pool.size();
         for (int i = 0; i < delta; i++) {
             makeNewPeer();
