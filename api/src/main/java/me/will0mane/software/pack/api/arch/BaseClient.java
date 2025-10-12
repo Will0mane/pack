@@ -135,13 +135,13 @@ public class BaseClient implements Client {
                     network.onReceiveBytes(data);
                 }
             } catch (EOFException e) {
-                System.out.println("Client disconnected!");
+                if(System.getProperties().containsKey("debug-pack")) System.out.println("Client disconnected!");
             } catch (IOException e) {
                 if (running) { // Only log if we're not shutting down
-                    System.err.println("Error reading from input stream: " + e.getMessage());
+                    if(System.getProperties().containsKey("debug-pack")) System.err.println("Error reading from input stream: " + e.getMessage());
                 }
             } catch (Exception e) {
-                System.err.println("Unexpected error in read thread: " + e.getMessage());
+                if(System.getProperties().containsKey("debug-pack")) System.err.println("Unexpected error in read thread: " + e.getMessage());
                 e.printStackTrace();
             }
         });
