@@ -9,7 +9,7 @@ import java.util.List;
 
 public class PacketBuffer {
 
-    public static final int MAX_PACKET_SIZE = 1048576;
+    public static final int MAX_PACKET_SIZE = 10485760;
 
     private final boolean read;
 
