@@ -136,21 +136,19 @@ public class BasePeer implements Peer {
             ServerboundHello packet = new ServerboundHello(info.preferred().identifier(), array);
             CompletableFuture<ClientboundHello> future = sendAndAwait(packet, ClientboundHello.class, TimeUnit.SECONDS, 5);
             ClientboundHello response = future.get();
-            if(response == null) throw new ConnectionError("The server did not answer to our hello packet. Disconnecting!");
+            if (response == null)
+                throw new ConnectionError("The server did not answer to our hello packet. Disconnecting!");
             switch (response.result()) {
                 case ACCEPTED -> {
                     Codec codec = registry.fromId(response.using());
                     network.registrar().useCodec(codec);
                 }
-                case NO_MATCH -> {
-                    throw new CodecMismatchException(info.preferred().identifier(),
-                            String.join(",", array), "");
-                }
-                case NO_INPUT -> {
-                    throw new ConnectionError("Error! No input has been given. This means that the client supports no codec!");
-                }
+                case NO_MATCH -> throw new CodecMismatchException(info.preferred().identifier(),
+                        String.join(",", array), "");
+                case NO_INPUT ->
+                        throw new ConnectionError("Error! No input has been given. This means that the client supports no codec!");
             }
-        }catch(Exception e) {
+        } catch (Exception e) {
             try {
                 close();
             } catch (Exception ignored) {
@@ -181,7 +179,7 @@ public class BasePeer implements Peer {
 
     @Override
     public void close() throws Exception {
-        if(socket == null) return;
+        if (socket == null) return;
         socket.close();
         running = false;
         readThread.interrupt();
