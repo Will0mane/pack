@@ -11,7 +11,8 @@ public class BaseServer implements Server {
     private final CodecRegistry registry;
 
     private final ServerSocket socket;
-    private Consumer<Client> consumer = ignored->{};
+    private Consumer<Client> consumer = ignored -> {
+    };
 
     private volatile boolean running = true;
     private Thread loop;
@@ -22,6 +23,11 @@ public class BaseServer implements Server {
     }
 
     public void loop(Consumer<Client> consumer) {
+        loop(consumer, ignored -> {
+        });
+    }
+
+    public void loop(Consumer<Client> consumer, Consumer<Exception> errors) {
         this.consumer = consumer;
 
         while (running) {
@@ -30,7 +36,8 @@ public class BaseServer implements Server {
                 BaseClient client = new BaseClient(registry.info(), accept);
                 client.connect(registry);
                 accept(client);
-            }catch (Exception e) {
+            } catch (Exception e) {
+                errors.accept(e);
             }
         }
     }
