@@ -8,7 +8,6 @@ import me.will0mane.software.pack.api.codec.HelloCodec;
 import me.will0mane.software.pack.api.exceptions.CodecMismatchException;
 import me.will0mane.software.pack.api.exceptions.ConnectionError;
 import me.will0mane.software.pack.api.exceptions.ConnectionException;
-import me.will0mane.software.pack.api.exceptions.SystemException;
 import me.will0mane.software.pack.api.hello.ClientboundHello;
 import me.will0mane.software.pack.api.hello.ServerboundHello;
 
@@ -75,32 +74,16 @@ public class BasePeer implements Peer {
                         network.onReceiveBytes(data);
                     }
                 } catch (EOFException e) {
-                    e.printStackTrace();
-                    running = false;
-                    try {
-                        socket.close();
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
+                    log(e);
+                    closeSilent();
                 } catch (IOException e) {
                     if (running) { // Only log if we're not shutting down
-                        System.err.println("Error reading from input stream: " + e.getMessage());
+                        log(e);
                     }
-                    running = false;
-                    try {
-                        socket.close();
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
+                    closeSilent();
                 } catch (Exception e) {
-                    System.err.println("Unexpected error in read thread: " + e.getMessage());
-                    e.printStackTrace();
-                    running = false;
-                    try {
-                        socket.close();
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
+                    log(e);
+                    closeSilent();
                 }
             });
             readThread.start();
@@ -149,11 +132,22 @@ public class BasePeer implements Peer {
                         throw new ConnectionError("Error! No input has been given. This means that the client supports no codec!");
             }
         } catch (Exception e) {
-            try {
-                close();
-            } catch (Exception ignored) {
-            }
-            throw new SystemException(e);
+            log(e);
+            closeSilent();
+        }
+    }
+
+    private void log(Exception e) {
+        e.printStackTrace();
+    }
+
+    private void closeSilent() {
+        running = false;
+        try {
+            if (socket == null) return;
+            socket.close();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
