@@ -49,6 +49,16 @@ public class BasePeer implements Peer {
         return running && socket != null && socket.isConnected();
     }
 
+    public void forceClose() {
+        try {
+            socket.setSoTimeout(100); // 100ms
+
+            Thread.sleep(200);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void connect(CodecRegistry registry) throws ConnectionException {
         try {

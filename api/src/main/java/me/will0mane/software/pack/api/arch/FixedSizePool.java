@@ -52,6 +52,20 @@ public class FixedSizePool implements Pool {
         }
     }
 
+    public void shutdown() {
+        lock.lock();
+        try {
+            for (Peer peer : pool) {
+                BasePeer peer1 = (BasePeer) peer;
+                peer1.forceClose();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
+    }
+
     private void checkPoolHealth() {
         lock.lock();
         try {
@@ -69,6 +83,7 @@ public class FixedSizePool implements Pool {
                     try {
                         peer.close();
                     } catch (Exception e) {
+                        e.printStackTrace();
                         throw new RuntimeException(e);
                     }
                 }
