@@ -1,19 +1,19 @@
 package me.will0mane.software.pack.api.arch;
 
+
 import me.will0mane.software.pack.api.codec.CodecInfo;
 import me.will0mane.software.pack.api.codec.CodecRegistry;
 
-import java.util.ArrayDeque;
-import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 public class FixedSizePool implements Pool {
 
-    private final Queue<Peer> pool = new ArrayDeque<>();
+    private final ConcurrentLinkedQueue<Peer> pool = new ConcurrentLinkedQueue<>();
+    private final ReentrantLock lock = new ReentrantLock();
     private final int size;
-
     private final ConnectionInfo info;
-
     private final CodecInfo codecInfo;
 
     public FixedSizePool(int size, ConnectionInfo info, CodecInfo codecInfo) {
@@ -22,30 +22,70 @@ public class FixedSizePool implements Pool {
         this.codecInfo = codecInfo;
     }
 
-    private void checkPoolHealth() {
-        pool.removeIf(peer -> !peer.isConnected());
-        if (pool.size() == this.size) return;
-        if (pool.size() > this.size) {
-            int delta = pool.size() - this.size;
-            for (int i = 0; i < delta; i++) {
-                Peer peer = pool.poll();
-                if (peer == null || !peer.isConnected()) continue;
-                try {
-                    peer.close();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+    public void printHealth() {
+        lock.lock();
+        try {
+            System.out.println("Pool INFO");
+            System.out.println("Pool size: " + pool.size());
+            System.out.println("-----");
+            int i = 0;
+            for (Peer peer : pool) {
+                System.out.println("Peer #" + i + ": " + (peer.isConnected() ? "Connected" : "Disconnected"));
+                i++;
             }
-            return;
+        } finally {
+            lock.unlock();
         }
+    }
 
-        int delta = this.size - pool.size();
-        for (int i = 0; i < delta; i++) {
-            makeNewPeer();
+    public void reboot() {
+        lock.lock();
+        try {
+            for (Peer peer : pool) {
+                peer.close();
+            }
+            pool.clear();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void checkPoolHealth() {
+        lock.lock();
+        try {
+            pool.removeIf(peer -> !peer.isConnected());
+
+            int currentSize = pool.size();
+
+            if (currentSize == this.size) return;
+
+            if (currentSize > this.size) {
+                int delta = currentSize - this.size;
+                for (int i = 0; i < delta; i++) {
+                    Peer peer = pool.poll();
+                    if (peer == null || !peer.isConnected()) continue;
+                    try {
+                        peer.close();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                return;
+            }
+
+            int delta = this.size - currentSize;
+            for (int i = 0; i < delta; i++) {
+                makeNewPeer();
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     private void makeNewPeer() {
+        // Called within lock in checkPoolHealth
         Peer peer = Servers.at(info);
         peer.connect(new CodecRegistry(codecInfo));
         pool.add(peer);
@@ -54,21 +94,45 @@ public class FixedSizePool implements Pool {
     @Override
     public void retrieve(Consumer<Peer> consumer) {
         checkPoolHealth();
-        Peer poll = pool.poll();
-        if (poll == null) throw new RuntimeException("No candidate available in pool!");
+
+        Peer poll;
+        lock.lock();
+        try {
+            poll = pool.poll();
+            if (poll == null) throw new RuntimeException("No candidate available in pool!");
+        } finally {
+            lock.unlock();
+        }
+
+        // Execute consumer outside of lock to avoid holding lock during user code
         consumer.accept(poll);
-        if (poll.isConnected()) {
-            pool.add(poll);
-        } else {
-            makeNewPeer();
+
+        lock.lock();
+        try {
+            if (poll.isConnected()) {
+                pool.add(poll);
+            } else {
+                makeNewPeer();
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public void withdraw(Consumer<Peer> peer) {
         checkPoolHealth();
-        Peer poll = pool.poll();
-        if (poll == null) throw new RuntimeException("No candidate available in pool!");
+
+        Peer poll;
+        lock.lock();
+        try {
+            poll = pool.poll();
+            if (poll == null) throw new RuntimeException("No candidate available in pool!");
+        } finally {
+            lock.unlock();
+        }
+
+        // Execute consumer outside of lock
         peer.accept(poll);
     }
 }
