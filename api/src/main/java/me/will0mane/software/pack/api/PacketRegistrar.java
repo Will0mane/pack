@@ -4,23 +4,23 @@ import me.will0mane.software.pack.api.codec.Codec;
 import me.will0mane.software.pack.api.request.RequestPacket;
 import me.will0mane.software.pack.api.request.ResponsePacket;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PacketRegistrar {
 
-    private final Map<Class<? extends Packet>, Collection<PacketListener<?>>> listenMap = new HashMap<>();
-    private final Map<String, PacketFactory<?>> factoryMap = new HashMap<>();
-	
-    private int lastListenerID = -1;
-	private int lastRequestID = 0;
-	
+    private final ConcurrentHashMap<Class<? extends Packet>, CopyOnWriteArrayList<PacketListener<?>>> listenMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, PacketFactory<?>> factoryMap = new ConcurrentHashMap<>();
+
+    private final AtomicInteger lastListenerID = new AtomicInteger(-1);
+    private final AtomicInteger lastRequestID = new AtomicInteger(0);
+
     public void useCodec(Codec codec) {
         factoryMap.clear();
         codec.registerAll(this);
-		register(new RequestPacket.Factory(this), new ResponsePacket.Factory(this));
+        register(new RequestPacket.Factory(this), new ResponsePacket.Factory(this));
     }
 
     public void register(PacketFactory<?>... factories) {
@@ -31,14 +31,16 @@ public class PacketRegistrar {
 
     public void register(PacketListener<?>... listeners) {
         for (PacketListener<?> listener : listeners) {
-            listenMap.putIfAbsent(listener.packetClass(), new ArrayList<>());
-            listenMap.get(listener.packetClass()).add(listener);
+            listenMap.computeIfAbsent(listener.packetClass(), k -> new CopyOnWriteArrayList<>()).add(listener);
         }
     }
 
     public void unregister(PacketListener<?>... listeners) {
         for (PacketListener<?> listener : listeners) {
-            listenMap.get(listener.packetClass()).remove(listener);
+            CopyOnWriteArrayList<PacketListener<?>> list = listenMap.get(listener.packetClass());
+            if (list != null) {
+                list.remove(listener);
+            }
         }
     }
 
@@ -57,15 +59,13 @@ public class PacketRegistrar {
     public PacketFactory<?> factory(Packet packet) {
         return factory(packet.getClass());
     }
-	
+
     public int nextListenerId() {
-        lastListenerID++;
-        return lastListenerID;
+        return lastListenerID.incrementAndGet();
     }
-	
-	public int nextRequestId() {
-		lastRequestID++;
-		return lastRequestID;
-	}
+
+    public int nextRequestId() {
+        return lastRequestID.incrementAndGet();
+    }
 
 }
