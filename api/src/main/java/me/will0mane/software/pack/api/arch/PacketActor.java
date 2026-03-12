@@ -48,6 +48,7 @@ public interface PacketActor {
         try {
             byte[] b = newBuffer.writeFully();
             output.write(b);
+            output.flush();
         } catch (IOException e) {
             throw new SystemException(e);
         }
