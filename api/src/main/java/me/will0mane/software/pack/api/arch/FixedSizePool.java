@@ -56,11 +56,13 @@ public class FixedSizePool implements Pool {
         lock.lock();
         try {
             for (Peer peer : pool) {
-                BasePeer peer1 = (BasePeer) peer;
-                peer1.forceClose();
+                try {
+                    peer.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            pool.clear();
         } finally {
             lock.unlock();
         }
