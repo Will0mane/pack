@@ -6,4 +6,8 @@ public abstract class ConnectionException extends RuntimeException {
         super(message);
     }
 
+    public ConnectionException(Throwable cause) {
+        super(cause);
+    }
+
 }

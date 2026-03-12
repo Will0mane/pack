@@ -4,4 +4,8 @@ public class ConnectionError extends ConnectionException {
     public ConnectionError(String message) {
         super(message);
     }
+
+    public ConnectionError(Throwable cause) {
+        super(cause);
+    }
 }

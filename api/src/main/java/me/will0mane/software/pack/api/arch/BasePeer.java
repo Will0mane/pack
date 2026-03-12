@@ -141,9 +141,14 @@ public class BasePeer implements Peer {
                 case NO_INPUT ->
                         throw new ConnectionError("Error! No input has been given. This means that the client supports no codec!");
             }
+        } catch (ConnectionException e) {
+            log(e);
+            closeSilent();
+            throw e;
         } catch (Exception e) {
             log(e);
             closeSilent();
+            throw new ConnectionError(e);
         }
     }
 
@@ -184,9 +189,10 @@ public class BasePeer implements Peer {
     @Override
     public void close() throws Exception {
         if (socket == null) return;
-        socket.close();
         running = false;
+        socket.close();
         readThread.interrupt();
+        scheduler.shutdown();
     }
 
     @Override

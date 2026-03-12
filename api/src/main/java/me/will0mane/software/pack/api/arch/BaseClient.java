@@ -95,7 +95,9 @@ public class BaseClient implements Client {
                 }
 
                 send(new ClientboundHello(result, using));
-                registrar().useCodec(registry.fromId(using));
+                if (using != null) {
+                    registrar().useCodec(registry.fromId(using));
+                }
             }
         });
 
@@ -151,10 +153,11 @@ public class BaseClient implements Client {
     @Override
     public void close() throws Exception {
         if (socket == null) return;
-        socket.close();
         running = false;
+        socket.close();
         readThread.interrupt();
         readThread.join();
+        scheduler.shutdown();
     }
 
     @Override

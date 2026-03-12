@@ -29,6 +29,7 @@ public class BaseServer implements Server {
 
     public void loop(Consumer<Client> consumer, Consumer<Exception> errors) {
         this.consumer = consumer;
+        this.loop = Thread.currentThread();
 
         while (running) {
             try {
@@ -50,7 +51,7 @@ public class BaseServer implements Server {
     @Override
     public void close() throws Exception {
         running = false;
-        loop.interrupt();
+        if (loop != null) loop.interrupt();
         socket.close();
     }
 }

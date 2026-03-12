@@ -29,4 +29,9 @@ public class ThreadScheduler implements Scheduler {
         service.execute(() -> future.complete(null));
         return future;
     }
+
+    @Override
+    public void shutdown() {
+        service.shutdownNow();
+    }
 }
