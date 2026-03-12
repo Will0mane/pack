@@ -11,4 +11,6 @@ public interface Scheduler {
 
     CompletableFuture<Void> now();
 
+    void shutdown();
+
 }
