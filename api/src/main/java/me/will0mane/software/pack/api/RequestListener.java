@@ -21,7 +21,15 @@ public abstract class RequestListener<T extends Packet> implements PacketListene
     @SuppressWarnings("unchecked")
     public void onPacket(RequestPacket packet) {
         int id = packet.id();
-        Packet handle = handle((T) packet.carry());
+        Packet carry = packet.carry();
+        if (carry == null) return;
+        T casted;
+        try {
+            casted = (T) carry;
+        } catch (ClassCastException e) {
+            return;
+        }
+        Packet handle = handle(casted);
         if(handle == null) return;
         ResponsePacket responsePacket = new ResponsePacket(id, handle);
         sender.accept(responsePacket);
