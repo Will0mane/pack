@@ -9,7 +9,7 @@ import java.util.List;
 
 public class PacketBuffer {
 
-    public static final int MAX_PACKET_SIZE = 10485760;
+    public static int MAX_PACKET_SIZE = 10485760;
 
     private final boolean read;
 
@@ -233,9 +233,16 @@ public class PacketBuffer {
         return this.input.readBoolean();
     }
 
+    private void checkArrayLength(int len) {
+        if (len < 0 || len > MAX_PACKET_SIZE) {
+            throw new IllegalStateException("Invalid array length: " + len + ", must be between 0 and " + MAX_PACKET_SIZE);
+        }
+    }
+
     public byte[] readBytes() {
         checkWriteOnly();
         int len = this.input.readInt();
+        checkArrayLength(len);
         byte[] result = new byte[len];
         for(int i = 0; i < len; ++i) {
             result[i] = this.input.readByte();
@@ -255,6 +262,7 @@ public class PacketBuffer {
     public int[] readInts() {
         checkWriteOnly();
         int len = this.input.readInt();
+        checkArrayLength(len);
         int[] result = new int[len];
         for(int i = 0; i < len; ++i) {
             result[i] = this.input.readInt();
@@ -265,6 +273,7 @@ public class PacketBuffer {
     public String[] readUTFs() {
         checkWriteOnly();
         int len = this.input.readInt();
+        checkArrayLength(len);
         String[] result = new String[len];
         for(int i = 0; i < len; ++i) {
             result[i] = this.input.readUTF();
@@ -275,6 +284,7 @@ public class PacketBuffer {
     public char[] readChars() {
         checkWriteOnly();
         int len = this.input.readInt();
+        checkArrayLength(len);
         char[] result = new char[len];
         for(int i = 0; i < len; ++i) {
             result[i] = this.input.readChar();
@@ -285,6 +295,7 @@ public class PacketBuffer {
     public double[] readDoubles() {
         checkWriteOnly();
         int len = this.input.readInt();
+        checkArrayLength(len);
         double[] result = new double[len];
         for(int i = 0; i < len; ++i) {
             result[i] = this.input.readDouble();
@@ -295,6 +306,7 @@ public class PacketBuffer {
     public float[] readFloats() {
         checkWriteOnly();
         int len = this.input.readInt();
+        checkArrayLength(len);
         float[] result = new float[len];
         for(int i = 0; i < len; ++i) {
             result[i] = this.input.readFloat();
@@ -305,6 +317,7 @@ public class PacketBuffer {
     public long[] readLongs() {
         checkWriteOnly();
         int len = this.input.readInt();
+        checkArrayLength(len);
         long[] result = new long[len];
         for(int i = 0; i < len; ++i) {
             result[i] = this.input.readLong();
@@ -315,6 +328,7 @@ public class PacketBuffer {
     public short[] readShorts() {
         checkWriteOnly();
         int len = this.input.readInt();
+        checkArrayLength(len);
         short[] result = new short[len];
         for(int i = 0; i < len; ++i) {
             result[i] = this.input.readShort();
@@ -325,6 +339,7 @@ public class PacketBuffer {
     public boolean[] readBooleans() {
         checkWriteOnly();
         int len = this.input.readInt();
+        checkArrayLength(len);
         boolean[] result = new boolean[len];
         for(int i = 0; i < len; ++i) {
             result[i] = this.input.readBoolean();
