@@ -41,11 +41,7 @@ public interface PacketActor {
                 output.write((byte) (length >>> 16));
                 output.write((byte) (length >>> 8));
                 output.write((byte) (length));
-
-                for (byte b : all) {
-                    output.write(b);
-                }
-
+                output.write(all);
                 output.flush();
             }
         } catch (IOException e) {
