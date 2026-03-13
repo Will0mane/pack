@@ -57,7 +57,7 @@ public class BaseClient implements Client {
 
     @Override
     public boolean isConnected() {
-        return socket.isConnected();
+        return running && socket.isConnected();
     }
 
     @Override
