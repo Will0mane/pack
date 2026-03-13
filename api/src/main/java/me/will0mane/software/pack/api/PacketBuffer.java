@@ -19,7 +19,7 @@ public class PacketBuffer {
     public PacketBuffer(byte[] buffer) {
         this.read = true;
         this.input = ByteStreams.newDataInput(buffer);
-        this.output = ByteStreams.newDataOutput();
+        this.output = null;
     }
 
     public PacketBuffer() {
