@@ -35,14 +35,17 @@ public interface PacketActor {
         byte[] all = buffer.writeFully();
         int length = all.length;
 
+        byte[] header = new byte[4];
+        header[0] = ((byte) (length >>> 24));
+        header[1] = ((byte) (length >>> 16));
+        header[2] = ((byte) (length >>> 8));
+        header[3] = ((byte) (length));
+
         OutputStream output = output();
         if (output == null) throw new NotConnectedException();
         try {
             synchronized (output) {
-                output.write((byte) (length >>> 24));
-                output.write((byte) (length >>> 16));
-                output.write((byte) (length >>> 8));
-                output.write((byte) (length));
+                output.write(header);
                 output.write(all);
                 output.flush();
             }
