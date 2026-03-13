@@ -135,7 +135,6 @@ public class BaseClient implements Client {
 
     @Override
     public void close() throws Exception {
-        if (socket == null) return;
         running = false;
         socket.close();
         if (readThread != null) {
