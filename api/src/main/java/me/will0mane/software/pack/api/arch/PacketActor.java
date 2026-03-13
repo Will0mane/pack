@@ -54,7 +54,7 @@ public interface PacketActor {
     default <T extends Packet> CompletableFuture<T> sendAndAwait(Packet packet, Class<T> response, TimeUnit unit, long timeout) {
         CompletableFuture<T> future = new CompletableFuture<>();
         send(packet);
-        registrar().register(new SingleUseListener<T>(registrar(), registrar().nextListenerId()) {
+        SingleUseListener<T> listener = new SingleUseListener<T>(registrar(), registrar().nextListenerId()) {
             @Override
             public void onPacketReceived(T packet) {
                 future.complete(packet);
@@ -64,9 +64,13 @@ public interface PacketActor {
             public Class<T> packetClass() {
                 return response;
             }
-        });
+        };
+        registrar().register(listener);
         scheduler().after(unit, timeout).thenAccept(ignored -> {
-            future.complete(null);
+            if (!future.isDone()) {
+                registrar().unregister(listener);
+                future.complete(null);
+            }
         });
         return future;
     }
