@@ -4,6 +4,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -355,37 +356,26 @@ public class PacketBuffer {
 
     public byte[] heavyReadFully() {
         checkWriteOnly();
-        List<Byte> result = new ArrayList<>();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         while(true) {
             try {
-                result.add(this.input.readByte());
+                baos.write(this.input.readByte());
             }catch (IllegalStateException ignored) {
                 break;
             }
         }
 
-        byte[] arr = new byte[result.size()];
-        for(int i = 0; i < result.size(); ++i) {
-            arr[i] = result.get(i);
-        }
-
-        return arr;
+        return baos.toByteArray();
     }
 
     public Byte[] lightReadFully() {
-        checkWriteOnly();
-        List<Byte> result = new ArrayList<>();
-
-        while(true) {
-            try {
-                result.add(this.input.readByte());
-            }catch (IllegalStateException ignored) {
-                break;
-            }
+        byte[] bytes = heavyReadFully();
+        Byte[] result = new Byte[bytes.length];
+        for (int i = 0; i < bytes.length; i++) {
+            result[i] = bytes[i];
         }
-
-        return result.toArray(new Byte[]{});
+        return result;
     }
 
     public PacketBuffer skip(int length) {
