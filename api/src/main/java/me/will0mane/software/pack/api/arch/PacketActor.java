@@ -79,7 +79,7 @@ public interface PacketActor {
 		RequestPacket request = RequestPacket.of(registrar(), packet);
 
 		send(request);
-		registrar().register(new PacketListener<ResponsePacket>() {
+		PacketListener<ResponsePacket> listener = new PacketListener<ResponsePacket>() {
 			@Override
 			public Class<ResponsePacket> packetClass() {
 				return ResponsePacket.class;
@@ -92,10 +92,12 @@ public interface PacketActor {
 				future.complete(((T) received.response()));
 				registrar().unregister(this);
 			}
-		});
-		
+		};
+		registrar().register(listener);
+
 		scheduler().after(unit, timeout).thenRun(() -> {
 			if (!future.isDone()) {
+				registrar().unregister(listener);
 				future.completeExceptionally(new TimeoutException("No response in time! Request id: " + request.id()));
 			}
 		});
