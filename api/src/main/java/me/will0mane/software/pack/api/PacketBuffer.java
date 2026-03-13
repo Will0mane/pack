@@ -251,6 +251,7 @@ public class PacketBuffer {
 
     public byte[] readBytes(int length) {
         checkWriteOnly();
+        checkArrayLength(length);
         byte[] result = new byte[length];
         for(int i = 0; i < length; ++i) {
             result[i] = this.input.readByte();
