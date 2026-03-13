@@ -4,6 +4,7 @@ import me.will0mane.software.pack.api.codec.CodecRegistry;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 public class BaseServer implements Server {
@@ -14,6 +15,7 @@ public class BaseServer implements Server {
     private Consumer<Client> consumer = ignored -> {
     };
 
+    private final CopyOnWriteArrayList<Client> clients = new CopyOnWriteArrayList<>();
     private volatile boolean running = true;
     private Thread loop;
 
@@ -45,6 +47,7 @@ public class BaseServer implements Server {
 
     @Override
     public void accept(Client client) {
+        clients.add(client);
         consumer.accept(client);
     }
 
@@ -52,6 +55,14 @@ public class BaseServer implements Server {
     public void close() throws Exception {
         running = false;
         if (loop != null) loop.interrupt();
+        for (Client client : clients) {
+            try {
+                client.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        clients.clear();
         socket.close();
     }
 }
