@@ -31,10 +31,9 @@ public class BaseNetworkHandler implements NetworkHandler {
             return;
         }
 
-        Collection<PacketListener<?>> listeners1 = registrar.listeners(o.getClass());
-        if (listeners1 == null || listeners1.isEmpty()) return;
+        Collection<PacketListener<?>> listeners = registrar.listeners(o.getClass());
+        if (listeners == null || listeners.isEmpty()) return;
 
-        Collection<PacketListener<?>> listeners = new ArrayList<>(listeners1);
         for (PacketListener listener : listeners) {
             if(listener.packetClass() != o.getClass()) continue;
             listener.onPacket(o);
