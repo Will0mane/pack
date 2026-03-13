@@ -13,7 +13,6 @@ import me.will0mane.software.pack.api.hello.ServerboundHello;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static me.will0mane.software.pack.api.PacketBuffer.MAX_PACKET_SIZE;
@@ -101,24 +100,7 @@ public class BaseClient implements Client {
             }
         });
 
-        registrar().register(new RequestListener<>(this::send) {
-
-            @Override
-            public Packet handle(Packet packet) {
-                Collection<PacketListener<?>> listeners1 = registrar().listeners(packet.getClass());
-                if (listeners1 == null || listeners1.isEmpty()) return null;
-
-                Packet response = null;
-                Collection<PacketListener<?>> listeners = new ArrayList<>(listeners1);
-                for (PacketListener listener : listeners) {
-                    if (listener.packetClass() != packet.getClass()) continue;
-                    response = listener.withResponse(packet);
-                    if (response != null) break;
-                }
-
-                return response;
-            }
-        });
+        registrar().register(new DispatchingRequestListener(this::send, registrar()));
 
         running = true;
         readThread = new Thread(() -> {

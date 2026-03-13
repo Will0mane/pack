@@ -14,7 +14,6 @@ import me.will0mane.software.pack.api.hello.ServerboundHello;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -89,24 +88,7 @@ public class BasePeer implements Peer {
             readThread.setDaemon(true);
             readThread.start();
 
-            registrar().register(new RequestListener<>(this::send) {
-
-                @Override
-                public Packet handle(Packet packet) {
-                    Collection<PacketListener<?>> listeners1 = registrar().listeners(packet.getClass());
-                    if (listeners1 == null || listeners1.isEmpty()) return null;
-
-                    Packet response = null;
-                    Collection<PacketListener<?>> listeners = new ArrayList<>(listeners1);
-                    for (PacketListener listener : listeners) {
-                        if (listener.packetClass() != packet.getClass()) continue;
-                        response = listener.withResponse(packet);
-                        if (response != null) break;
-                    }
-
-                    return response;
-                }
-            });
+            registrar().register(new DispatchingRequestListener(this::send, registrar()));
 
             List<String> supported = new ArrayList<>();
             CodecInfo info = registry.info();
