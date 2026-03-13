@@ -27,4 +27,9 @@ public abstract class SingleUseListener<T extends Packet> implements PacketListe
     public boolean equals(Object obj) {
         return obj instanceof SingleUseListener && this.id == ((SingleUseListener) obj).id;
     }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
+    }
 }
