@@ -3,6 +3,7 @@ package me.will0mane.software.pack.api.arch;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class ThreadScheduler implements Scheduler {
@@ -17,10 +18,8 @@ public class ThreadScheduler implements Scheduler {
     }
 
     @Override
-    public CompletableFuture<Void> fixedRate(TimeUnit unit, long delay, long period) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        service.scheduleAtFixedRate(() -> future.complete(null), delay, period, unit);
-        return future;
+    public ScheduledFuture<?> fixedRate(Runnable task, TimeUnit unit, long delay, long period) {
+        return service.scheduleAtFixedRate(task, delay, period, unit);
     }
 
     @Override
