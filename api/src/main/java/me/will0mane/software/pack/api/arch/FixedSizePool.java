@@ -39,19 +39,7 @@ public class FixedSizePool implements Pool {
     }
 
     public void reboot() {
-        lock.lock();
-        try {
-            for (Peer peer : pool) {
-                try {
-                    peer.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            pool.clear();
-        } finally {
-            lock.unlock();
-        }
+        shutdown();
     }
 
     public void shutdown() {
@@ -123,17 +111,19 @@ public class FixedSizePool implements Pool {
         }
 
         // Execute consumer outside of lock to avoid holding lock during user code
-        consumer.accept(poll);
-
-        lock.lock();
         try {
-            if (poll.isConnected()) {
-                pool.add(poll);
-            } else {
-                makeNewPeer();
-            }
+            consumer.accept(poll);
         } finally {
-            lock.unlock();
+            lock.lock();
+            try {
+                if (poll.isConnected()) {
+                    pool.add(poll);
+                } else {
+                    makeNewPeer();
+                }
+            } finally {
+                lock.unlock();
+            }
         }
     }
 
