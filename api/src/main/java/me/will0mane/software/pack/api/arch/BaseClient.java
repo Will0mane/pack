@@ -156,8 +156,10 @@ public class BaseClient implements Client {
         if (socket == null) return;
         running = false;
         socket.close();
-        readThread.interrupt();
-        readThread.join();
+        if (readThread != null) {
+            readThread.interrupt();
+            readThread.join();
+        }
         scheduler.shutdown();
     }
 

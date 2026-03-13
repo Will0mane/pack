@@ -181,7 +181,7 @@ public class BasePeer implements Peer {
         if (socket == null) return;
         running = false;
         socket.close();
-        readThread.interrupt();
+        if (readThread != null) readThread.interrupt();
         scheduler.shutdown();
     }
 
