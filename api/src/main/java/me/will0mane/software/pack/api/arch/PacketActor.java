@@ -36,16 +36,18 @@ public interface PacketActor {
         OutputStream output = output();
         if (output == null) throw new NotConnectedException();
         try {
-            output.write((byte) (length >>> 24));
-            output.write((byte) (length >>> 16));
-            output.write((byte) (length >>> 8));
-            output.write((byte) (length));
+            synchronized (output) {
+                output.write((byte) (length >>> 24));
+                output.write((byte) (length >>> 16));
+                output.write((byte) (length >>> 8));
+                output.write((byte) (length));
 
-            for (byte b : all) {
-                output.write(b);
+                for (byte b : all) {
+                    output.write(b);
+                }
+
+                output.flush();
             }
-
-            output.flush();
         } catch (IOException e) {
             throw new SystemException(e);
         }
