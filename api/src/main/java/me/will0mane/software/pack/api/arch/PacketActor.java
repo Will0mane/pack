@@ -26,6 +26,8 @@ public interface PacketActor {
         PacketBuffer buffer = new PacketBuffer();
 
         PacketFactory<Packet> factory = (PacketFactory<Packet>) registrar().factory(packet);
+        if (factory == null)
+            throw new IllegalStateException("No factory registered for packet type: " + packet.getClass().getName());
 
         buffer.writeUTF(factory.packet().getName());
         factory.serialize(packet, buffer);
