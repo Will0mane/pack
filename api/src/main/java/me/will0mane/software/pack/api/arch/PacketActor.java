@@ -32,22 +32,19 @@ public interface PacketActor {
 
         byte[] all = buffer.writeFully();
         int length = all.length;
-        PacketBuffer newBuffer = new PacketBuffer();
-
-        newBuffer.writeByte((byte) (length >>> 24));
-        newBuffer.writeByte((byte) (length >>> 16));
-        newBuffer.writeByte((byte) (length >>> 8));
-        newBuffer.writeByte((byte) (length >>> 0));
-
-        for (byte b : all) {
-            newBuffer.writeByte(b);
-        }
 
         OutputStream output = output();
         if (output == null) throw new NotConnectedException();
         try {
-            byte[] b = newBuffer.writeFully();
-            output.write(b);
+            output.write((byte) (length >>> 24));
+            output.write((byte) (length >>> 16));
+            output.write((byte) (length >>> 8));
+            output.write((byte) (length));
+
+            for (byte b : all) {
+                output.write(b);
+            }
+
             output.flush();
         } catch (IOException e) {
             throw new SystemException(e);
