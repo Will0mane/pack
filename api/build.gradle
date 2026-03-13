@@ -35,7 +35,18 @@ publishing {
                 password "$mavenPassword"
             }
             authentication {
-                basic(BasicAuthentication)
+                create("basic", BasicAuthentication)
+            }
+        }
+
+        maven {
+            url "https://repo.willomane.com/releases"
+            credentials {
+                username "$willomaneUser"
+                password "$willomanePassword"
+            }
+            authentication {
+                create("basic", BasicAuthentication)
             }
         }
     }
