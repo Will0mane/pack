@@ -86,6 +86,7 @@ public class BasePeer implements Peer {
                     closeSilent();
                 }
             });
+            readThread.setDaemon(true);
             readThread.start();
 
             registrar().register(new RequestListener<>(this::send) {

@@ -147,6 +147,7 @@ public class BaseClient implements Client {
                 e.printStackTrace();
             }
         });
+        readThread.setDaemon(true);
         readThread.start();
     }
 
