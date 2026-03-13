@@ -42,11 +42,13 @@ public class FixedSizePool implements Pool {
         lock.lock();
         try {
             for (Peer peer : pool) {
-                peer.close();
+                try {
+                    peer.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             pool.clear();
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             lock.unlock();
         }
@@ -86,7 +88,6 @@ public class FixedSizePool implements Pool {
                         peer.close();
                     } catch (Exception e) {
                         e.printStackTrace();
-                        throw new RuntimeException(e);
                     }
                 }
                 return;
