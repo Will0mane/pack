@@ -1,6 +1,5 @@
 package me.will0mane.software.pack.api.arch;
 
-import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
 
@@ -18,7 +17,7 @@ public class Host {
             return new ServerSocket(port);
         }
 
-        return SSLServerSocketFactory.getDefault().createServerSocket(port);
+        return SslContext.serverSocketFactory().createServerSocket(port);
     }
 
 }

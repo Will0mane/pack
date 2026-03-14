@@ -11,7 +11,6 @@ import me.will0mane.software.pack.api.exceptions.ConnectionException;
 import me.will0mane.software.pack.api.hello.ClientboundHello;
 import me.will0mane.software.pack.api.hello.ServerboundHello;
 
-import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -59,7 +58,7 @@ public class BasePeer implements Peer {
     public void connect(CodecRegistry registry) throws ConnectionException {
         try {
             socket = ssl
-                    ? SSLSocketFactory.getDefault().createSocket(host, port)
+                    ? SslContext.socketFactory().createSocket(host, port)
                     : new Socket(host, port);
 
             input = socket.getInputStream();
