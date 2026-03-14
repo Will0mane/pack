@@ -11,6 +11,7 @@ import me.will0mane.software.pack.api.exceptions.ConnectionException;
 import me.will0mane.software.pack.api.hello.ClientboundHello;
 import me.will0mane.software.pack.api.hello.ServerboundHello;
 
+import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class BasePeer implements Peer {
 
     private final String host;
     private final int port;
+    private final boolean ssl;
 
     private final NetworkHandler network;
 
@@ -38,9 +40,14 @@ public class BasePeer implements Peer {
     private Thread readThread;
 
     public BasePeer(String host, int port) {
+        this(host, port, false);
+    }
+
+    public BasePeer(String host, int port, boolean ssl) {
         network = new BaseNetworkHandler(new PacketRegistrar());
         this.host = host;
         this.port = port;
+        this.ssl = ssl;
     }
 
     @Override
@@ -51,7 +58,9 @@ public class BasePeer implements Peer {
     @Override
     public void connect(CodecRegistry registry) throws ConnectionException {
         try {
-            socket = new Socket(host, port);
+            socket = ssl
+                    ? SSLSocketFactory.getDefault().createSocket(host, port)
+                    : new Socket(host, port);
 
             input = socket.getInputStream();
             output = socket.getOutputStream();

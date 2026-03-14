@@ -29,6 +29,7 @@ Pack is built around a few key abstractions:
 - **Codec** — A named group of packet factories. Both sides negotiate which codec to use on connect.
 - **Peer** — A client-side connection to a server.
 - **Server** — Listens for incoming connections and hands you `Client` instances.
+- **Host** — Utility for creating server sockets, with optional SSL.
 - **Pool** — Manages a fixed-size set of reusable peer connections.
 
 ## Quick Start
@@ -83,7 +84,7 @@ public class ChatCodec implements Codec {
 CodecInfo codecInfo = new CodecInfo(new ChatCodec());
 CodecRegistry registry = new CodecRegistry(codecInfo);
 
-ServerSocket serverSocket = new ServerSocket(8080);
+ServerSocket serverSocket = Host.socket(8080);
 BaseServer server = new BaseServer(registry, serverSocket);
 
 server.loop(client -> {
@@ -213,6 +214,44 @@ CodecInfo codecInfo = new CodecInfo(
     new ChatCodecV2(),     // preferred
     new ChatCodecV1()      // fallback
 );
+```
+
+## SSL/TLS
+
+Pack supports native SSL/TLS encryption. Enable it by passing `true` as the SSL flag — no other API changes required.
+
+### SSL Server
+
+```java
+ServerSocket serverSocket = Host.socket(8443, true);
+BaseServer server = new BaseServer(registry, serverSocket);
+server.loop(client -> { /* same as plain TCP */ });
+```
+
+### SSL Client
+
+```java
+Peer peer = Servers.at("localhost", 8443, true);
+peer.connect(registry);
+```
+
+### SSL Connection Pooling
+
+```java
+ConnectionInfo info = new ConnectionInfo("localhost", 8443, true);
+CodecInfo codecInfo = new CodecInfo(new ChatCodec());
+FixedSizePool pool = new FixedSizePool(5, info, codecInfo);
+```
+
+### SSL Configuration
+
+SSL uses Java's default `SSLSocketFactory` / `SSLServerSocketFactory`, configured via standard JVM system properties:
+
+```
+-Djavax.net.ssl.keyStore=keystore.jks
+-Djavax.net.ssl.keyStorePassword=changeit
+-Djavax.net.ssl.trustStore=truststore.jks
+-Djavax.net.ssl.trustStorePassword=changeit
 ```
 
 ## Debugging

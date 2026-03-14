@@ -13,6 +13,18 @@ public class Servers {
         return new BasePeer(host, port);
     }
 
+    /**
+     * Returns the relative peer for a specific host and port with optional SSL.
+     * Does not connect automatically.
+     *
+     * @param host the server's hostname
+     * @param port the server's port
+     * @param ssl  whether to use SSL/TLS encryption
+     * @return a newly made Peer for that host and port.
+     */
+    public static Peer at(String host, int port, boolean ssl) {
+        return new BasePeer(host, port, ssl);
+    }
 
     /**
      * Returns the relative peer for a specific connection info. Does not connect automatically.
@@ -21,7 +33,7 @@ public class Servers {
      * @return a newly made Peer for that host and port.
      */
     public static Peer at(ConnectionInfo info) {
-        return at(info.host(), info.port());
+        return at(info.host(), info.port(), info.ssl());
     }
 
 }
